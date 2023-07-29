@@ -66,25 +66,29 @@ columnas_a_copiar.insert(posicion_columna1, "Status", nueva_columna1)
 columnas_a_copiar.insert(posicion_columna2, "NC2", nueva_columna2)
 columnas_a_copiar.insert(posicion_columna3, "NC3", nueva_columna3)
 
-# Actualizaciones de estado en el nuevo Dataframe
+archcsv1['Shipping Company'] = archcsv1['Shipping Company'].replace(".","")
+archcsv1['Shipping Company'] = archcsv1['Shipping Company'].replace(" ","")
+
+# Verificaciones y actualizaciones del dataframe columnas_a_copiar
 for index, row in archcsv1.iterrows():
-    if row['Financial Status'] == 'pending':
-        columnas_a_copiar.loc[index,'Status'] = 'FALTA PAGAR'
-    elif row['Financial Status'] == 'paid' and row['Shipping Province Name'] == 'Ciudad Autónoma de Buenos Aires':
-        columnas_a_copiar.loc[index, 'Status'] = 'CABA'
+    if row['Financial Status'] == 'paid':
+        if row['Shipping Company'].startswith("DNI "):
+            pass
+        else:
+            if not row['Shipping Company'].isnumeric():
+                columnas_a_copiar.loc[index, 'Status'] = "FALTA DNI"
+    else:
+        if row['Financial Status'] == 'pending':
+            columnas_a_copiar.loc[index, 'Status'] = "FALTA PAGAR"
+        else:
+            pass
 
-# Función para extraer solo el número
-def extract_dni_number(value):
-    if value.startswith('DNI'):
-        return value[4:]
-    return value
-
-# Reemplazar puntos en la columna 'Shipping Company'
-archcsv1['Shipping Company'] = archcsv1['Shipping Company'].replace('.', '', regex=True)
-
-# Aplicar la función extract_dni_number solo a las filas que cumplen con la condición
-mask = archcsv1['Shipping Province Name'] != 'Ciudad Autónoma de Buenos Aires'
-archcsv1.loc[mask, 'Shipping Company'] = archcsv1.loc[mask, 'Shipping Company'].apply(extract_dni_number)
+for index, row in archcsv1.iterrows():
+    if row['Financial Status'] == 'paid':
+        if row['Shipping Province Name'] == 'Ciudad Autónoma de Buenos Aires':
+            columnas_a_copiar.loc[index, 'Status'] = "CABA"
+    else:
+        pass
 
 # Esta es la copia que se almacena en Carga de archivos
 ArchivoFinal = columnas_a_copiar
