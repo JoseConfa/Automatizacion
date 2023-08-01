@@ -66,17 +66,21 @@ columnas_a_copiar.insert(posicion_columna1, "Status", nueva_columna1)
 columnas_a_copiar.insert(posicion_columna2, "NC2", nueva_columna2)
 columnas_a_copiar.insert(posicion_columna3, "NC3", nueva_columna3)
 
-archcsv1['Shipping Company'] = archcsv1['Shipping Company'].replace(".","")
-archcsv1['Shipping Company'] = archcsv1['Shipping Company'].replace(" ","")
+archcsv1['Shipping Company'] = archcsv1['Shipping Company'].str.replace(".", "")
+archcsv1['Shipping Company'] = archcsv1['Shipping Company'].str.replace(" ", "")
 
 # Verificaciones y actualizaciones del dataframe columnas_a_copiar
 for index, row in archcsv1.iterrows():
-    if row['Financial Status'] == 'paid':
+    if isinstance(row['Shipping Company'], str) and row['Financial Status'] == 'paid':
         if row['Shipping Company'].startswith("DNI "):
             pass
         else:
             if not row['Shipping Company'].isnumeric():
                 columnas_a_copiar.loc[index, 'Status'] = "FALTA DNI"
+    
+    elif row['Financial Status'] == 'expired':
+        columnas_a_copiar.loc[index, 'Status'] = 'VENCIDO'
+    
     else:
         if row['Financial Status'] == 'pending':
             columnas_a_copiar.loc[index, 'Status'] = "FALTA PAGAR"
